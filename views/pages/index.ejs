@@ -1,24 +1,108 @@
 <!DOCTYPE html>
 <html>
 	<head>
-	  	<title>VideoConverter</title>
-		<link rel="stylesheet" type="text/css" href="/stylesheets/main.css" />
+	  	<% include ../partition/header.ejs %>
 	</head>
 
 	<body>
-		<div class="title">
-			<h1>VideoConverter</h1>
-		</div>
-
-		<div class="upload">
-				<form action='/upload' method='post' enctype='multipart/form-data'>
-					<input name='image' type='file'/>
-					<input type='submit'>
-				</form>
-		</div>
-
 		<div class="container">
-			<h1>Assistir ao video</h1>
-		</div>
+      <div class="header clearfix">
+        <h2 class="text-muted">AppVideoConverter</h2>
+      </div>
+
+			<div class="jumbotron">
+				 <h2>Converte Videos</h2>
+				 <p class="lead">Aplicação Web que possibilita a conversão de arquivos de video de um formato
+					 específico, não compatível com os padrões da web, para um formato que seja compatível com os padrões da web.</p>
+				 <br />
+				 <form method="POST" action="/success">
+					  <div class="form-group">
+					    <label for="file_input" class="control-label">Selecione um arquivo:</label>
+					    <input type="file" id="file_input" class="file" data-show-preview="false">
+					  </div>
+					  <button type="submit" class="btn btn-primary">Converter Video</button>
+				</form>
+			</div>
+			<div class="jumbotron">
+				<h2>Assistir Video</h2>
+				<p class="lead">Possibilita a visualização dos videos após sua conversão para um formato padrão da web.</p>
+				<center>
+					<video width="480" height="360" controls="controls" autoplay="autoplay">
+				 			<source src="/files/teste.mp4" type="video/mp4">
+							<object data="" width="480" height="360">
+									<embed width="480" height="360" src="/files/teste.mp4">
+							</object>
+					</video>
+				</center>
+		 </div>
+	 </div>
+	 <br /><br />
+	 <script>
+			(function() {
+	    	document.getElementById("file_input").onchange = function(){
+		        var files = document.getElementById("file_input").files;
+						var file = files[0];
+						if(file == null){
+		            alert("No file selected.");
+		        }
+		        else{
+		            getRequestToUploadFile(file);
+		        }
+	    	};
+			})();
+
+			function getRequestToUploadFile(file){
+			    var xhr = new XMLHttpRequest();
+			    xhr.open("GET", "/sign_s3?file_name="+file.name+"&file_type="+file.type);
+					xhr.onreadystatechange = function(){
+			        if(xhr.readyState === 4){
+			            if(xhr.status === 200){
+					            var response = JSON.parse(xhr.responseText);
+					            uploadFile(file, response.signed_request, response.url);
+			            }
+			            else{
+			                alert("Não foi possível obter URL para upload");
+			            }
+			        }
+			    };
+			    xhr.send();
+			}
+
+			function uploadFile(file, signed_request, url){
+			    var xhr = new XMLHttpRequest();
+			    xhr.open("PUT", signed_request);
+			    xhr.setRequestHeader('x-amz-acl', 'public-read');
+			    xhr.onload = function() {
+			        if (xhr.status === 200) {
+			            //codigo para setar visualizacao
+			        }
+			    };
+			    xhr.onerror = function() {
+			        alert("Upload do arquivo não pode ser realizado.");
+			    };
+			    xhr.send(file);
+			}
+	 </script>
+
+	 <script>
+			function playPause(){
+				if (video.paused)
+				  video.play();
+				else
+				  video.pause();
+			}
+
+			function grande(){
+				video.width=560;
+			}
+
+			function pequeno(){
+				video.width=320;
+			}
+
+			function normal(){
+				video.width=420;
+			}
+	 </script>
 	</body>
 </html>
