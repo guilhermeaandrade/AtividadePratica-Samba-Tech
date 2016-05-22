@@ -27,10 +27,10 @@
 				<h2>Assistir Video</h2>
 				<p class="lead">Possibilita a visualização dos videos após sua conversão para um formato padrão da web.</p>
 				<center>
-					<video width="480" height="360" controls="controls" autoplay="autoplay">
+					<video width="640" height="480" controls="controls" autoplay="autoplay">
 				 			<source src="/files/teste.mp4" type="video/mp4">
-							<object data="" width="480" height="360">
-									<embed width="480" height="360" src="/files/teste.mp4">
+							<object data="" width="640" height="480">
+									<embed width="640" height="480" src="/files/teste.mp4">
 							</object>
 					</video>
 				</center>
@@ -43,7 +43,7 @@
 		        var files = document.getElementById("file_input").files;
 						var file = files[0];
 						if(file == null){
-		            alert("No file selected.");
+		            alert("Nenhum arquivo foi selecionado.");
 		        }
 		        else{
 		            getRequestToUploadFile(file);
@@ -58,6 +58,9 @@
 			        if(xhr.readyState === 4){
 			            if(xhr.status === 200){
 					            var response = JSON.parse(xhr.responseText);
+											console.log("response: "+response);
+											console.log("file: "+file);
+											console.log("sig: "+response.signed_request+"-"+response.url);
 					            uploadFile(file, response.signed_request, response.url);
 			            }
 			            else{
@@ -70,11 +73,12 @@
 
 			function uploadFile(file, signed_request, url){
 			    var xhr = new XMLHttpRequest();
+					console.log("signed_request: "+signed_request);
 			    xhr.open("PUT", signed_request);
 			    xhr.setRequestHeader('x-amz-acl', 'public-read');
 			    xhr.onload = function() {
 			        if (xhr.status === 200) {
-			            //codigo para setar visualizacao
+
 			        }
 			    };
 			    xhr.onerror = function() {
