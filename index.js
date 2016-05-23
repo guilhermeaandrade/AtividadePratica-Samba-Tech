@@ -33,11 +33,11 @@ var client = s3.createClient({
 });
 
 var params = {
-  localFile: "/home/guilherme/Documentos/Guilherme/Desenvolvimento/SambaTech/atividadepratica-sambatech/public/files/sample.dv",
+  localFile: "/home/guilherme/Documentos/Guilherme/Desenvolvimento/SambaTech/atividadepratica-sambatech/public/files/test4.wmv",
   s3Params: {
     Bucket: S3_BUCKET,
-    Key: "sample.dv",
-    ACL: 'public-read'
+    Key: "test4.wmv",
+    ACL: 'public-read-write'
   },
 };
 
@@ -58,18 +58,17 @@ uploader.on('end', function() {
 var Zencoder = require('zencoder');
 var client = new Zencoder('aecec04ea8904ffcadee0cb7a1597790');
 client.Job.create({
-  input: 'https://s3-sa-east-1.amazonaws.com/apsambatech/test.mov',
+  input: 'https://s3-sa-east-1.amazonaws.com/apsambatech/test8.wmv',
   outputs: [{
-      filename: "test_converted"
-      url: "s3://apsambatech/test_converted.mp4",
+      url: "s3://apsambatech/test8.mp4",
       size: "640x480"
     },
     {
-      url: "s3://apsambatech/test_converted.webm",
+      url: "s3://apsambatech/test8.webm",
       size: "640x480"
     }
   ],
-  test: false
+  test: false,
 }, function(err, data){
   if (err) { console.log("Erro com a conversão!"); return err; }
   console.log('Job created!\nJob ID: ' + data.id);
@@ -118,7 +117,13 @@ app.listen(app.get('port'), function() {
 
 app.get('/sign_s3', function(req, res){
     console.log("app.get('sign_s3')");
-    aws.config.update({accessKeyId: AWS_ACCESS_KEY, secretAccessKey: AWS_SECRET_KEY});
+    aws.config.update({
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_SECRET_KEY,
+        httpOptions: {
+           timeout: 3600000,
+        },
+      });
     var s3 = new aws.S3();
     var s3_params = {
         Bucket: S3_BUCKET,

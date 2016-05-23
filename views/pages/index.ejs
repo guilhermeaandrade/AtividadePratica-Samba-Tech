@@ -10,25 +10,31 @@
         <h3 class="text-muted">AppVideoConverter</h3>
       </div>
 
-			<div class="alert alert-success alert-dismissible fade in" role="alert" style="display:none;">
+			<div class="alert alert-success alert-dismissible fade in" role="alert" style="display:none;" id="alSuccess">
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 			    		<span aria-hidden="true">&times;</span>
 			  	</button>
 					<strong>Sucesso!</strong> Video foi convertido é pode ser visualizado abaixo.
 			</div>
-	 	  <div class="alert alert-info alert-dismissible fade in" role="alert" style="display:none;">
+	 	  <div class="alert alert-info alert-dismissible fade in" role="alert" style="display:none;" id="alInfo">
 				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				 		<span aria-hidden="true">&times;</span>
 					</button>
 					<strong>Videos</strong> processo de conversão do video foi iniciada.
 	 	  </div>
+			<div class="alert alert-danger alert-dismissible fade in" role="alert" style="display:none;" id="alDanger">
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			    		<span aria-hidden="true">&times;</span>
+			  	</button>
+					<strong>Erro!</strong> Erro na conversão do video.
+			</div>
 
 			<div class="jumbotron">
 				 <h2>Converte Videos</h2>
 				 <p class="lead">Aplicação Web que possibilita a conversão de arquivos de video de um formato
 					 específico, não compatível com os padrões da web, para um formato que seja compatível com os padrões da web.</p>
 				 <br />
-				 <form method="POST" action="/">
+				 <form method="POST">
 					  <div class="form-group">
 					    <label for="file_input" class="control-label">Selecione um arquivo:</label>
 					    <input type="file" id="file_input" class="file" data-show-preview="false">
@@ -36,30 +42,23 @@
 					  <button type="submit" class="btn btn-primary" id="btnConvert">Converter Video</button>
 				</form>
 			</div>
-
 			<div class="jumbotron">
 				<h2>Assistir Video</h2>
 				<p class="lead">Possibilita a visualização dos videos após sua conversão para um formato padrão da web.</p>
 				<center>
-					<video width="640" height="480" controls="controls" autoplay="autoplay" id="video">
-				 			<source src="https://s3-sa-east-1.amazonaws.com/apsambatech/test_converted.mp4" type="video/mp4">
+					<video width="640" height="480" controls="controls"  id="video">
+				 			<source src="https://s3-sa-east-1.amazonaws.com/apsambatech/test7.mp4" type="video/mp4">
 							<object data="" width="640" height="480">
-									<embed width="640" height="480" src="https://s3-sa-east-1.amazonaws.com/apsambatech/test_converted.mp4">
+									<embed width="640" height="480" src="https://s3-sa-east-1.amazonaws.com/apsambatech/test7.mp4">
 							</object>
 					</video>
-					<!--<video width="640" height="480" controls="controls" autoplay="autoplay" id="video">
-				 			<source src="/files/teste.mp4" type="video/mp4">
-							<object data="" width="640" height="480">
-									<embed width="640" height="480" src="/files/teste.mp4">
-							</object>
-					</video> -->
 				</center>
 		 </div>
 	 </div>
 	 <br />
 	 <script>
-			$("#btnConvert").click(function(){
-					$(". alert alert-info").alert();
+	 		$("#btnConvert").click(function(){
+					$('#alInfo').show();
 			});
 
 			(function() {
@@ -68,7 +67,7 @@
 		        var files = document.getElementById("file_input").files;
 						var file = files[0];
 						if(file == null){
-		            alert("Nenhum arquivo foi selecionado.");
+								$('#alDanger').show();
 		        }
 		        else{
 		            getRequestToUploadFile(file);
@@ -88,7 +87,7 @@
 											uploadFile(file, response.signed_request, response.url);
 			            }
 			            else{
-			                alert("Não foi possível obter URL para upload");
+											$('#alDanger').show();
 			            }
 			        }
 			    };
@@ -104,13 +103,13 @@
 			    xhr.onload = function() {
 							console.log("xhr.onload");
 			        if (xhr.status === 200) {
-									//seta os valores
+									$('#alSuccess').show();
 									document.getElementById("video").src = url
 									document.getElementById("video").value = url;
 			        }
 			    };
 			    xhr.onerror = function() {
-			        alert("Upload do arquivo não pode ser realizado.");
+							$('#alDanger').show();
 			    };
 			    xhr.send(file);
 			}
