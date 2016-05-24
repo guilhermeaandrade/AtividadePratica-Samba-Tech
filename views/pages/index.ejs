@@ -14,13 +14,13 @@
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 			    		<span aria-hidden="true">&times;</span>
 			  	</button>
-					<strong>Sucesso!</strong> Video foi convertido é pode ser visualizado abaixo.
+					<strong>Sucesso!</strong> Video foi convertido é pode ser visualizado na seção abaixo.
 			</div>
 	 	  <div class="alert alert-info alert-dismissible fade in" role="alert" style="display:none;" id="alInfo">
 				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				 		<span aria-hidden="true">&times;</span>
 					</button>
-					<strong> Processo de conversão do video foi iniciada. </strong>
+					<strong> Processo de conversão do video foi iniciado e poderá levar alguns minutos. </strong>
 	 	  </div>
 			<div class="alert alert-danger alert-dismissible fade in" role="alert" style="display:none;" id="alDanger">
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -47,15 +47,18 @@
 				<p class="lead">Possibilita a visualização dos videos após sua conversão para um formato padrão da web.</p>
 				<center>
 					<video width="640" height="480" controls="controls"  id="video">
-				 			<source src="https://s3-sa-east-1.amazonaws.com/apsambatech/test7.mp4" type="video/mp4">
+				 			<source src="#" type="video/mp4">
+							<source src="#" type="video/webm">
 							<object data="" width="640" height="480">
-									<embed width="640" height="480" src="https://s3-sa-east-1.amazonaws.com/apsambatech/test7.mp4">
+									<embed width="640" height="480" src="#">
 							</object>
 					</video>
 				</center>
 		 </div>
 	 </div>
 	 <script>
+	 		var video = document.getElementById("video");
+			video.style.display="none";
 
 	 		$("#btnConvert").click(function(){
 					var files = document.getElementById("file_input").files;
@@ -109,8 +112,8 @@
 			    xhr.setRequestHeader('x-amz-acl', 'public-read');
 			    xhr.onload = function() {
 								if (xhr.status === 200) {
-									//processo de upload finalizado
-									initProcessConvertFile(file, url);
+									//processo de upload finalizado -> requisição de conversão
+									initProcessConvertFile(file);
 			        }
 			    };
 			    xhr.onerror = function() {
@@ -122,23 +125,35 @@
 			    xhr.send(file);
 			}
 
-			function initProcessConvertFile(file, url){
+			function initProcessConvertFile(file){
 					let name = (file.name).substring(0, ((file.name).length - 4));
 					let format = "mp4";
 					let newName = name.concat("_converted.", format);
+					let url = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+file.name;
 
-					//chama funçao para realizar conversão
-					//TODO função ainda não implementada
+					var xhr = new XMLHttpRequest();
+					xhr.open("GET", "/zencoder?file_name="+newName+"&url="+url);
+					xhr.onreadystatechange = function(){
+						console.log("onreadystatechange");
+						if(xhr.readyState === 4){
+								console.log("readyState");
+								if(xhr.status === 200){
+										console.log("status");
+										var response = JSON.parse(xhr.responseText);
+										console.log("response: "+response);
 
+										let urlConverted = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+newName;
+										video.style.display="inline";
+										video.src = urlConverted;
+										video.value = urlConverted;
 
-					//apos conversao mostra o video convertido
-					//let urlConverted = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+newName;
-					document.getElementById("video").src = url;
-					document.getElementById("video").value = url;
-
-					$('#alSuccess').fadeTo(2000,500).slideUp(5000, function(){
-							$('#alSuccess').alert();
-					});
+										$('#alSuccess').fadeTo(2000,500).slideUp(5000, function(){
+												$('#alSuccess').alert();
+										});
+								}
+						}
+					}
+					xhr.send();
 			}
 	 </script>
 	</body>
