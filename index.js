@@ -17,6 +17,46 @@ var aws = require('aws-sdk');
 //zencoder
 //*****************************************************************************************************
 var Zencoder = require('zencoder');
+var client = new Zencoder('aecec04ea8904ffcadee0cb7a1597790');
+client.Job.create({
+  input: 'https://s3-sa-east-1.amazonaws.com/apsambatech/test8.wmv',
+  outputs: [{
+      url: "s3://apsambatech/test8.mp4",
+      size: "640x480"
+    },
+    {
+      url: "s3://apsambatech/test8.webm",
+      size: "640x480"
+    }
+  ],
+  test: false,
+}, function(err, data){
+  if (err) { console.log("Erro com a conversão!"); return err; }
+  console.log('Job created!\nJob ID: ' + data.id);
+  poll(data.id);
+});
+
+function poll(id) {
+  setTimeout(function(){
+    client.Job.progress(id, function(err, data) {
+      if (err) { console.log("OH NO! There was an error"); return err; }
+      if (data.state == 'waiting') {
+        if (!this.status || this.status != 'waiting') { //processo esperando
+            this.status = 'waiting';
+            console.log("Waiting");
+        }
+        poll(id);
+      } else if (data.state == 'processing') { //processo em andamento
+          var progress = Math.round(data.progress * 100) / 100;
+          this.status = 'processing';
+          console.log('Processando '+ progress + "%");
+          poll(id);
+      } else if (data.state == 'finished') { //processo finalizado
+        console.log('Job finished!');
+      }
+    });
+  }, 5000);
+}
 //************************************************************************************************************
 //Configurações da aplicação
 app.set('port', (process.env.PORT || 5000));
@@ -28,55 +68,8 @@ app.get('/', function(request, response) {
     response.render('pages/index');
 });
 
-app.post('/', function(request, response){
-    response.render('pages/index');
-});
-
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
-});
-
-app.get('/zencoder', function(req, res){
-  var client = new Zencoder('aecec04ea8904ffcadee0cb7a1597790');
-  client.Job.create({
-    input: 'https://s3-sa-east-1.amazonaws.com/apsambatech/test8.wmv',
-    outputs: [{
-        url: "s3://apsambatech/test8.mp4",
-        size: "640x480"
-      },
-      {
-        url: "s3://apsambatech/test8.webm",
-        size: "640x480"
-      }
-    ],
-    test: false,
-  }, function(err, data){
-    if (err) { console.log("Erro com a conversão!"); return err; }
-    console.log('Job created!\nJob ID: ' + data.id);
-    poll(data.id);
-  });
-
-  function poll(id) {
-    setTimeout(function(){
-      client.Job.progress(id, function(err, data) {
-        if (err) { console.log("OH NO! There was an error"); return err; }
-        if (data.state == 'waiting') {
-          if (!this.status || this.status != 'waiting') { //processo esperando
-              this.status = 'waiting';
-              console.log("Waiting");
-          }
-          poll(id);
-        } else if (data.state == 'processing') { //processo em andamento
-            var progress = Math.round(data.progress * 100) / 100;
-            this.status = 'processing';
-            console.log('Processando '+ progress + "%");
-            poll(id);
-        } else if (data.state == 'finished') { //processo finalizado
-          console.log('Job finished!');
-        }
-      });
-    }, 5000);
-  }
 });
 
 app.get('/sign_s3', function(req, res){
