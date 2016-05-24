@@ -20,13 +20,13 @@
 				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				 		<span aria-hidden="true">&times;</span>
 					</button>
-					<strong>Videos</strong> processo de conversão do video foi iniciada.
+					<strong> Processo de conversão do video foi iniciada. </strong>
 	 	  </div>
 			<div class="alert alert-danger alert-dismissible fade in" role="alert" style="display:none;" id="alDanger">
 					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 			    		<span aria-hidden="true">&times;</span>
 			  	</button>
-					<strong>Erro!</strong> Erro na conversão do video.
+					<strong>Erro!</strong> Falha no processo de conversão do video.
 			</div>
 
 			<div class="jumbotron">
@@ -34,13 +34,13 @@
 				 <p class="lead">Aplicação Web que possibilita a conversão de arquivos de video de um formato
 					 específico, não compatível com os padrões da web, para um formato que seja compatível com os padrões da web.</p>
 				 <br />
-				 <form method="POST">
+				 <form method="POST" enctype="multipart/form-data">
 					  <div class="form-group">
 					    <label for="file_input" class="control-label">Selecione um arquivo:</label>
 					    <input type="file" id="file_input" class="file" data-show-preview="false">
 					  </div>
-					  <button type="submit" class="btn btn-primary" id="btnConvert">Converter Video</button>
 				</form>
+				<button type="submit" class="btn btn-primary" id="btnConvert">Converter Video</button>
 			</div>
 			<div class="jumbotron">
 				<h2>Assistir Video</h2>
@@ -58,36 +58,49 @@
 	 <br />
 	 <script>
 	 		$("#btnConvert").click(function(){
-					$('#alInfo').show();
+					var files = document.getElementById("file_input").files;
+					var file = files[0];
+					if(file == null){
+							//apresentar um alert
+							$('#alDanger').change(function(){
+									alert('Testando');
+							});
+
+							$('#alDanger').fadeTo(2000,500).slideUp(5000, function(){
+									$('#alDanger').alert();
+							});
+
+					}
+					else{
+						getRequestToUploadFile(file);
+					}
 			});
 
-			(function() {
-				console.log("intial");
-	    	document.getElementById("file_input").onchange = function(){
-		        var files = document.getElementById("file_input").files;
-						var file = files[0];
-						if(file == null){
-								$('#alDanger').show();
-		        }
-		        else{
-		            getRequestToUploadFile(file);
-		        }
-	    	};
-			})();
-
 			function getRequestToUploadFile(file){
-					console.log("getRequestToUploadFile");
-			    var xhr = new XMLHttpRequest();
+					var xhr = new XMLHttpRequest();
 			    xhr.open("GET", "/sign_s3?file_name="+file.name+"&file_type="+file.type);
 					xhr.onreadystatechange = function(){
-							console.log("onreadystatechange");
 			        if(xhr.readyState === 4){
 			            if(xhr.status === 200){
 					            var response = JSON.parse(xhr.responseText);
+
+											//apresentar um alert
+											$("#alInfo").fadeTo(2000,500).slideUp(5000, function(){
+													$("#alInfo").alert();
+											});
+
+											//resetar valores
+											var input = $("#file_input");
+											input.replaceWith(input = input.clone(true));
+
+											//chamada do método para fazer de fato upload
 											uploadFile(file, response.signed_request, response.url);
 			            }
 			            else{
-											$('#alDanger').show();
+											//apresentar um alert
+											$('#alDanger').fadeTo(2000,500).slideUp(5000, function(){
+													$('#alDanger').alert();
+											});
 			            }
 			        }
 			    };
@@ -95,21 +108,21 @@
 			}
 
 			function uploadFile(file, signed_request, url){
-					console.log("uploadFile");
-			    var xhr = new XMLHttpRequest();
-					console.log("signed_request: "+signed_request);
-			    xhr.open("PUT", signed_request);
+					var xhr = new XMLHttpRequest();
+					xhr.open("PUT", signed_request);
 			    xhr.setRequestHeader('x-amz-acl', 'public-read');
 			    xhr.onload = function() {
 							console.log("xhr.onload");
 			        if (xhr.status === 200) {
-									$('#alSuccess').show();
 									document.getElementById("video").src = url
 									document.getElementById("video").value = url;
 			        }
 			    };
 			    xhr.onerror = function() {
-							$('#alDanger').show();
+							//apresentar um alert
+							$('#alDanger').fadeTo(2000,500).slideUp(5000, function(){
+									$('#alDanger').alert();
+							});
 			    };
 			    xhr.send(file);
 			}
