@@ -55,17 +55,13 @@
 				</center>
 		 </div>
 	 </div>
-	 <br />
 	 <script>
+
 	 		$("#btnConvert").click(function(){
 					var files = document.getElementById("file_input").files;
 					var file = files[0];
 					if(file == null){
 							//apresentar um alert
-							$('#alDanger').change(function(){
-									alert('Testando');
-							});
-
 							$('#alDanger').fadeTo(2000,500).slideUp(5000, function(){
 									$('#alDanger').alert();
 							});
@@ -112,10 +108,9 @@
 					xhr.open("PUT", signed_request);
 			    xhr.setRequestHeader('x-amz-acl', 'public-read');
 			    xhr.onload = function() {
-							console.log("xhr.onload");
-			        if (xhr.status === 200) {
-									document.getElementById("video").src = url
-									document.getElementById("video").value = url;
+								if (xhr.status === 200) {
+									//processo de upload finalizado
+									initProcessConvertFile(file, url);
 			        }
 			    };
 			    xhr.onerror = function() {
@@ -125,6 +120,25 @@
 							});
 			    };
 			    xhr.send(file);
+			}
+
+			function initProcessConvertFile(file, url){
+					let name = (file.name).substring(0, ((file.name).length - 4));
+					let format = "mp4";
+					let newName = name.concat("_converted.", format);
+
+					//chama funçao para realizar conversão
+					//TODO função ainda não implementada
+
+
+					//apos conversao mostra o video convertido
+					//let urlConverted = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+newName;
+					document.getElementById("video").src = url;
+					document.getElementById("video").value = url;
+
+					$('#alSuccess').fadeTo(2000,500).slideUp(5000, function(){
+							$('#alSuccess').alert();
+					});
 			}
 	 </script>
 	</body>
