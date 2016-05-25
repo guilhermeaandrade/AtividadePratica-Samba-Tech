@@ -132,8 +132,8 @@
 									initProcessConvertFile(file);
 
 									barProgress.style.display="inline";
-									$('.progress-bar').css('width', '2%');
-									$('.progress-bar').text('2%');
+									$('.progress-bar').css('width', '0.2%');
+									$('.progress-bar').text('0.2%');
 			        }
 			    };
 			    xhr.onerror = function() {
@@ -195,6 +195,8 @@
 																$('#alSuccess').alert();
 														});
 
+														barProgress.style.display="none";
+														
 														//exibir o video
 														let urlConverted = patternURL+nameConvertedVideo;
 														console.log(urlConverted);
