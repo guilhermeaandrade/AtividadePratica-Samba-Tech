@@ -62,8 +62,6 @@ app.get('/sign_s3', function(req, res){
 //*****************************************************************************************************
 app.get('/zencoder', function(req, res){
     var client = new Zencoder('aecec04ea8904ffcadee0cb7a1597790');
-    console.log("url: "+req.query.url);
-    console.log("file_name: " + req.query.file_name);
     client.Job.create({
         input: req.query.url,
         outputs: [{
@@ -77,34 +75,46 @@ app.get('/zencoder', function(req, res){
             console.log("Erro com a conversão!");
             return err;
         }else{
-            response = poll(data.id, client);
+            var return_data = {
+                id: data.id,
+            };
+            res.write(JSON.stringify(return_data));
+            res.end();
         }
-        console.log('Job created!\nJob ID: ' + data.id);
-        res.write(JSON.stringify(""+response));
-        res.end();
     });
 });
 
-function poll(id, client) {
-  console.log("entrei no metodo poll");
-  setTimeout(function(){
-    client.Job.progress(id, function(err, data) {
-      if (err) { console.log("OH NO! There was an error"); return err; }
-      if (data.state == 'waiting') {
-        if (!this.status || this.status != 'waiting') { //processo esperando
-            this.status = 'waiting';
-            console.log("Waiting");
+app.get('/checkConvert', function(req, res){
+    var client = new Zencoder('aecec04ea8904ffcadee0cb7a1597790');
+    var status = undefined; //waiting(0), processing(1), finished(2)
+    var progress = undefined;
+
+    client.Job.progress(req.query.id, function(err, data){
+        if(err){
+            console.log("Erro de conversão!");
+            return err;
         }
-        poll(id, client);
-      } else if (data.state == 'processing') { //processo em andamento
-          var progress = Math.round(data.progress * 100) / 100;
-          this.status = 'processing';
-          console.log('Processando '+ progress + "%");
-          poll(id, client);
-      } else if (data.state == 'finished') { //processo finalizado
-        console.log('Job finished!');
-        return 1;
-      }
+        if (data.state == 'waiting') {
+          if (!this.status || this.status != 'waiting') { //processo esperando
+              this.status = 'waiting';
+              status = 0;
+              progress = 0;
+          }
+        } else if (data.state == 'processing') { //processo em andamento
+            progress = Math.round(data.progress * 100) / 100;
+            this.status = 'processing';
+            status = 1;
+        } else if (data.state == 'finished') { //processo finalizado
+            status = 2;
+            progress = 100;
+        }
+        //reposta do serviço node
+        var return_data = {
+            status: status,
+            progress: progress
+        };
+        res.write(JSON.stringify(return_data));
+        res.end();
+
     });
-  }, 5000);
-}
+});

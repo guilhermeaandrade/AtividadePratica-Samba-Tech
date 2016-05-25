@@ -41,6 +41,17 @@
 					  </div>
 				</form>
 				<button type="submit" class="btn btn-primary" id="btnConvert">Converter Video</button>
+				<br />
+				<p>
+					<div class="progress" id="progress">
+						 <label for="file_input" class="control-label">Andamento da conversão:</label>
+						 <br />
+						 <div class="progress-bar progress-bar-striped active" role="progressbar"
+					  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:40%">
+					    0%
+					   </div>
+					</div>
+				</p>
 			</div>
 			<div class="jumbotron">
 				<h2>Assistir Video</h2>
@@ -57,9 +68,18 @@
 		 </div>
 	 </div>
 	 <script>
-	 		var video = document.getElementById("video");
+	 		//variáveis globais
+			var video = document.getElementById("video");
 			video.style.display="none";
 
+			var barProgress = document.getElementById("progress");
+			progress.style.display="none";
+
+			var idJobZencoder = undefined;
+			var nameConvertedVideo = undefined;
+			var patternURL = "https://s3-sa-east-1.amazonaws.com/apsambatech/";
+
+			//inicio da codificação
 	 		$("#btnConvert").click(function(){
 					var files = document.getElementById("file_input").files;
 					var file = files[0];
@@ -88,10 +108,6 @@
 													$("#alInfo").alert();
 											});
 
-											//resetar valores
-											var input = $("#file_input");
-											input.replaceWith(input = input.clone(true));
-
 											//chamada do método para fazer de fato upload
 											uploadFile(file, response.signed_request, response.url);
 			            }
@@ -111,7 +127,7 @@
 					xhr.open("PUT", signed_request);
 			    xhr.setRequestHeader('x-amz-acl', 'public-read');
 			    xhr.onload = function() {
-								if (xhr.status === 200) {
+							if (xhr.status === 200) {
 									//processo de upload finalizado -> requisição de conversão
 									initProcessConvertFile(file);
 			        }
@@ -128,32 +144,69 @@
 			function initProcessConvertFile(file){
 					let name = (file.name).substring(0, ((file.name).length - 4));
 					let format = "mp4";
-					let newName = name.concat("_converted.", format);
+					nameConvertedVideo = name.concat("_converted.", format);
 					let url = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+file.name;
 
 					var xhr = new XMLHttpRequest();
-					xhr.open("GET", "/zencoder?file_name="+newName+"&url="+url);
+					xhr.open("GET", "/zencoder?file_name="+nameConvertedVideo+"&url="+url);
 					xhr.onreadystatechange = function(){
-						console.log("onreadystatechange");
 						if(xhr.readyState === 4){
-								console.log("readyState");
 								if(xhr.status === 200){
-										console.log("status");
-										var response = JSON.parse(xhr.responseText);
-										console.log("response: "+response);
-
-										let urlConverted = "https://s3-sa-east-1.amazonaws.com/apsambatech/"+newName;
-										video.style.display="inline";
-										video.src = urlConverted;
-										video.value = urlConverted;
-
-										$('#alSuccess').fadeTo(2000,500).slideUp(5000, function(){
-												$('#alSuccess').alert();
-										});
+									  var response = JSON.parse(xhr.responseText);
+										setTimeout(function(){
+												convertVideo(response.id); //chama método para conversão
+										}, 3000);
 								}
 						}
 					}
 					xhr.send();
+			}
+
+			function convertVideo(id){
+					var xhr = new XMLHttpRequest();
+					xhr.open("GET", "/checkConvert?id="+id);
+					xhr.onreadystatechange = function(){
+								if(xhr.readyState === 4){
+									if(xhr.status === 200){
+											var response = JSON.parse(xhr.responseText);
+											barProgress.style.display="inline";
+											switch (response.status) {
+												case 1: {
+														//setar o progressbar
+														$('.progress-bar').css('width', response.progress+'%');
+														$('.progress-bar').text(response.progress+'%');
+
+														//chamo novamente a função para obter o processo
+														setTimeout(function(){
+																convertVideo(id); //chama método para conversão
+														}, 3000);
+												} break;
+												case 2: {
+														//altera o valor do progress
+														$('.progress-bar').css('width', '100%');
+														$('.progress-bar').text('100%');
+
+														//exibe mensagem de sucesso da conversão
+														$('#alSuccess').fadeTo(2000,500).slideUp(5000, function(){
+																$('#alSuccess').alert();
+														});
+
+														//exibir o video
+														let urlConverted = patternURL+nameConvertedVideo;
+														console.log(urlConverted);
+														video.style.display="inline";
+														video.src = urlConverted;
+														video.value = urlConverted;
+
+														//resetar valores
+														var input = $("#file_input");
+														input.replaceWith(input = input.clone(true));
+												} break;
+											}
+									}
+								}
+						}
+						xhr.send();
 			}
 	 </script>
 	</body>
