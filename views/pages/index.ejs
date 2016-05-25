@@ -130,6 +130,10 @@
 							if (xhr.status === 200) {
 									//processo de upload finalizado -> requisição de conversão
 									initProcessConvertFile(file);
+
+									barProgress.style.display="inline";
+									$('.progress-bar').css('width', '2%');
+									$('.progress-bar').text('2%');
 			        }
 			    };
 			    xhr.onerror = function() {
