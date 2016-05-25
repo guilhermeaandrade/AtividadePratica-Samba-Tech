@@ -110,6 +110,11 @@
 
 											//chamada do método para fazer de fato upload
 											uploadFile(file, response.signed_request, response.url);
+
+											//valor inicial para alertar usuario que processo já iniciou
+											barProgress.style.display="inline";
+											$('.progress-bar').css('width', '2%');
+											$('.progress-bar').text('2%');
 			            }
 			            else{
 											//apresentar um alert
@@ -129,6 +134,9 @@
 			    xhr.onload = function() {
 							if (xhr.status === 200) {
 									//processo de upload finalizado -> requisição de conversão
+									//valor para alertar usuário que processo ja esta em andamento
+									$('.progress-bar').css('width', '3.5%');
+									$('.progress-bar').text('3.5%');
 									initProcessConvertFile(file);
 			        }
 			    };
@@ -169,7 +177,6 @@
 								if(xhr.readyState === 4){
 									if(xhr.status === 200){
 											var response = JSON.parse(xhr.responseText);
-											barProgress.style.display="inline";
 											switch (response.status) {
 												case 1: {
 														//setar o progressbar
@@ -191,9 +198,9 @@
 																$('#alSuccess').alert();
 														});
 
+														barProgress.style.display="none";
 														//exibir o video
 														let urlConverted = patternURL+nameConvertedVideo;
-														console.log(urlConverted);
 														video.style.display="inline";
 														video.src = urlConverted;
 														video.value = urlConverted;
@@ -201,6 +208,7 @@
 														//resetar valores
 														var input = $("#file_input");
 														input.replaceWith(input = input.clone(true));
+
 												} break;
 											}
 									}

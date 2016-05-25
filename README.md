@@ -10,7 +10,7 @@ Serviço de Storage:
 * Amazon S3 (http://aws.amazon.com/S3)
 
 Serviços de Encoding:
-* Zencoder (http://zencoder.com/pricing/)
+* Zencoder (http://zencoder.com/pricing/):
 A utilização do profile Test implica em:
     - saídas limitadas em 5 segundos
     - saídas possuem marca d'água
